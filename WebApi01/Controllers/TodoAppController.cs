@@ -39,9 +39,9 @@ namespace WebApi01.Controllers
         }
         [HttpPost]
         [Route("AddNotes")]
-        public JsonResult AddNotes([FromForm] string newNotes) 
+        public JsonResult AddNotes([FromForm] string title, [FromForm] string description) 
         {
-            string query = "INSERT into dbo.notes values(@newNotes)";
+            string query = "INSERT into dbo.notes (Title, Description) values(@title, @description)";
             DataTable table = new();
             string sqlDatasource = _config.GetConnectionString("todoAppDBConnectionString");
             SqlDataReader myReader;
@@ -51,7 +51,8 @@ namespace WebApi01.Controllers
                 myCon.Open();
 
                 using SqlCommand myCommand = new(query, myCon);
-                myCommand.Parameters.AddWithValue("@newNotes", newNotes);
+                myCommand.Parameters.AddWithValue("@title", title);
+                myCommand.Parameters.AddWithValue("@description", description);
                 myReader = myCommand.ExecuteReader();
                 table.Load(myReader);
 
@@ -66,7 +67,7 @@ namespace WebApi01.Controllers
         [Route("DeleteNotes")]
         public JsonResult DeleteNotes(int id)
         {
-            string query = "DELETE from dbo.notes where id=@id";
+            string query = "DELETE from dbo.notes where NoteId=@id";
             DataTable table = new();
             string sqlDatasource = _config.GetConnectionString("todoAppDBConnectionString");
             SqlDataReader myReader;
@@ -81,6 +82,24 @@ namespace WebApi01.Controllers
                     table.Load(myReader);
                     myReader.Close();
                     myCon.Close();
+                }
+            }
+
+            return new JsonResult("Deleted Successfully");
+        }
+        [HttpDelete]
+        [Route("DeleteAllNotes")]
+        public JsonResult DeleteAllNotes()
+        {
+            string query = "DELETE from dbo.notes";
+            string sqlDatasource = _config.GetConnectionString("todoAppDBConnectionString");
+
+            using (SqlConnection myCon = new(sqlDatasource))
+            {
+                myCon.Open();
+                using (SqlCommand myCommand = new(query, myCon))
+                {
+                    myCommand.ExecuteNonQuery(); // Use ExecuteNonQuery for DELETE
                 }
             }
 
