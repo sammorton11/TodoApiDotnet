@@ -37,6 +37,30 @@ namespace WebApi01.Controllers
 
             return new JsonResult(table);
         }
+        [HttpGet]
+        [Route("GetNote")]
+        public JsonResult GetNote(int id) 
+        {
+            string query = "SELECT * FROM dbo.notes where NoteId=@id";
+            DataTable table = new DataTable();
+            string sqlDatasource = _config.GetConnectionString("todoAppDBConnectionString");
+            SqlDataReader myReader;
+
+            using (SqlConnection myCon = new(sqlDatasource)) 
+            {
+                myCon.Open();
+                using (SqlCommand myCommand = new(query, myCon))
+                {
+                    myCommand.Parameters.AddWithValue("@id", id);
+                    myReader = myCommand.ExecuteReader();
+                    table.Load(myReader);
+                    myReader.Close();
+                    myCon.Close();
+                }
+            }
+
+            return new JsonResult(table);
+        }
         [HttpPost]
         [Route("AddNotes")]
         public JsonResult AddNotes([FromForm] string title, [FromForm] string description) 
@@ -105,5 +129,62 @@ namespace WebApi01.Controllers
 
             return new JsonResult("Deleted Successfully");
         }
+
+        // [HttpPut]
+        // [Route("UpdateNote")]
+        // public JsonResult UpdateNote([FromForm] int id, [FromForm] string title, [FromForm] string description)
+        // {
+        //     string query = "UPDATE dbo.notes SET Title = @title, Description = @description WHERE NoteId = @id";
+        //     string sqlData = _config.GetConnectionString("todoAppDBConnectionString");
+        //     DataTable table = new();
+        //     SqlDataReader myReader;
+        //     using (SqlConnection myCon = new(sqlData)) 
+        //     {
+        //         myCon.Open();
+        //         using (SqlCommand command = new(query, myCon))
+        //         {
+        //             command.Parameters.AddWithValue("@id", id);
+        //             command.Parameters.AddWithValue("@title", title);
+        //             command.Parameters.AddWithValue("@description", description);
+        //             myReader = command.ExecuteReader();
+        //             table.Load(myReader);
+        //
+        //             myReader.Close();
+        //             myCon.Close();
+        //         }
+        //     }
+        //
+        //     return new JsonResult("Updated " + title);
+        // }
+        
+        [HttpPut]
+        [Route("UpdateNote")]
+        public JsonResult UpdateNote([FromForm] int id, [FromForm] string title, [FromForm] string description)
+        {
+            string query = "UPDATE dbo.notes SET Title = @title, Description = @description WHERE NoteId = @id";
+            string sqlData = _config.GetConnectionString("todoAppDBConnectionString");
+
+            using (SqlConnection myCon = new SqlConnection(sqlData))
+            {
+                myCon.Open();
+                using (SqlCommand command = new SqlCommand(query, myCon))
+                {
+                    command.Parameters.AddWithValue("@id", id);
+                    command.Parameters.AddWithValue("@title", title);
+                    command.Parameters.AddWithValue("@description", description);
+                    int rowsAffected = command.ExecuteNonQuery(); // Use ExecuteNonQuery for UPDATE
+
+                    if (rowsAffected > 0)
+                    {
+                        return new JsonResult("Updated " + title);
+                    }
+                    else
+                    {
+                        return new JsonResult("Note not found or no changes made.");
+                    }
+                }
+            }
+        }
+
     }
 }
