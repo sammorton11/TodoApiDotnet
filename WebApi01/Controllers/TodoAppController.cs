@@ -135,10 +135,7 @@ public class TodoAppController : ControllerBase
             }
         }
 
-        using (_table)
-        {
-            return new JsonResult(_table);
-        }
+        return new JsonResult("Added Successfully");
     }
         
         
@@ -170,10 +167,7 @@ public class TodoAppController : ControllerBase
             }
         }
 
-        using (_table)
-        {
-            return new JsonResult(_table);
-        }
+        return new JsonResult("Deleted successfully");
     }
         
         
